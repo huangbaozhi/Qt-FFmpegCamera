@@ -1,0 +1,14 @@
+prefix=../ffmpeg5-1-2/
+exec_prefix=${prefix}
+libdir=../ffmpeg5-1-2//lib
+includedir=../ffmpeg5-1-2//include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 57.28.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -lm -luser32 -lbcrypt -latomic
+Cflags: -I${includedir}

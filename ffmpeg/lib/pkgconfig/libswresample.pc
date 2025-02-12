@@ -1,0 +1,14 @@
+prefix=../ffmpeg5-1-2/
+exec_prefix=${prefix}
+libdir=../ffmpeg5-1-2//lib
+includedir=../ffmpeg5-1-2//include
+
+Name: libswresample
+Description: FFmpeg audio resampling library
+Version: 4.7.100
+Requires: 
+Requires.private: libavutil >= 57.28.100
+Conflicts:
+Libs: -L${libdir}  -lswresample 
+Libs.private: -lm -latomic
+Cflags: -I${includedir}
