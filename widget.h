@@ -7,6 +7,9 @@
 #include <QWidget>
 #include <QImage>
 #include <QLabel>
+#include <QListWidget>
+#include <QMediaPlayer>
+#include <QVideoWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -34,6 +37,10 @@ private:
 
     //PlayImage* playImage = nullptr;
     QLabel *m_pShowVideoLbl = nullptr;
+    QListWidget *listWidget;
     ReadThread* m_readThread = nullptr;
+
+    QMediaPlayer *mediaPlayer;
+    QVideoWidget *videoWidget;
 };
 #endif // WIDGET_H

@@ -3,6 +3,14 @@
 
 #include <QCameraInfo>
 #include <QFileDialog>
+#include <QFile>
+#include <QByteArray>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QListWidgetItem>
+#include <QBuffer>
 
 extern "C" {        // 用C规则编译指定的代码
 #include "libavcodec/avcodec.h"
@@ -20,12 +28,30 @@ Widget::Widget(QWidget *parent)
 
     // 使用QOpenGLWindow绘制
     //playImage = new PlayImage;
+    QHBoxLayout *pHlyt = new QHBoxLayout;
     m_pShowVideoLbl = new QLabel;
+    m_pShowVideoLbl->setFixedSize(500, 500);
+    listWidget = new QListWidget;
+    listWidget->setFixedSize(200, 500);
+    pHlyt->addWidget(m_pShowVideoLbl);
+
+
+    // 设置QMediaPlayer和QVideoWidget
+    mediaPlayer = new QMediaPlayer(this);
+    videoWidget = new QVideoWidget(this);
+    videoWidget->setFixedSize(500, 500);
+
+    mediaPlayer->setVideoOutput(videoWidget);
+    pHlyt->addWidget(videoWidget);
+    pHlyt->addWidget(listWidget);
+
 #if USE_WINDOW
     ui->verticalLayout->addWidget(QWidget::createWindowContainer(playImage));   // 这一步加载速度要比OpenGLWidget慢一点
 #else
     //ui->verticalLayout->addWidget(playImage);
-    ui->verticalLayout->addWidget(m_pShowVideoLbl);
+//    ui->verticalLayout->addWidget(m_pShowVideoLbl);
+//    ui->verticalLayout->addWidget(listWidget);
+    ui->verticalLayout->addLayout(pHlyt);
 #endif
 
     m_readThread = new ReadThread();
@@ -57,8 +83,6 @@ Widget::~Widget()
         m_readThread->wait();
         delete m_readThread;
     }
-    delete ui;
-
     delete ui;
 }
 

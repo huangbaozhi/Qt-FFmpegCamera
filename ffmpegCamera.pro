@@ -1,4 +1,4 @@
-QT       += core gui multimedia multimediawidgets
+QT       += core gui multimedia multimediawidgets sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,7 +27,7 @@ include(./VideoPlay/VideoPlay.pri)
 INCLUDEPATH += ./VideoPlay
 
 #  定义程序版本号
-VERSION = 1.3.0
+VERSION = 1.0.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 TARGET  = ffmpegCamera
 
