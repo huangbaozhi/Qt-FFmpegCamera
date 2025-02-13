@@ -40,6 +40,7 @@ Widget::Widget(QWidget *parent)
     mediaPlayer = new QMediaPlayer(this);
     videoWidget = new QVideoWidget(this);
     videoWidget->setFixedSize(500, 500);
+    videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
 
     mediaPlayer->setVideoOutput(videoWidget);
     pHlyt->addWidget(videoWidget);
@@ -69,6 +70,35 @@ Widget::Widget(QWidget *parent)
         ui->com_url->addItem(camera.deviceName());                // ffmpeg在linux下要使用deviceName()
 #elif defined(Q_OS_MAC)
 #endif
+    }
+
+    // 连接SQLite数据库
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("videos.db");  // 数据库路径
+
+    if (!db.open()) {
+        qDebug() << "无法打开数据库";
+    }
+    else
+    {
+        qDebug() << "数据库连接成功！！！";
+    }
+
+    // 创建表结构
+    QSqlQuery query;
+    query.exec("CREATE TABLE IF NOT EXISTS video_streams ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "video_name TEXT NOT NULL, "
+               "codec_name TEXT NOT NULL, "
+               "width INTEGER NOT NULL, "
+               "height INTEGER NOT NULL, "
+               "frame_rate DOUBLE NOT NULL, "
+               "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
+
+    if (query.lastError().isValid()) {
+        qDebug() << "创建表失败：" << query.lastError().text();
+    } else {
+        qDebug() << "数据库创建成功";
     }
 }
 
@@ -146,5 +176,51 @@ void Widget::onFrameReady(AVFrame *frame)
     sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, data, linesize);
 
     m_pShowVideoLbl->setPixmap(QPixmap::fromImage(image));
+}
+
+
+void Widget::on_playButton_clicked()
+{
+    QString videoFilePath = getVideoFilePathFromDatabase();
+
+    qDebug()<<"[视频路径！！！]= " << videoFilePath;
+
+    if (videoFilePath.isEmpty()) {
+        qDebug() << "数据库中没有视频路径";
+        return;
+    }
+    else
+    {
+        qDebug() << "数据库中有视频路径";
+    }
+
+    // 播放视频
+    mediaPlayer->setMedia(QUrl::fromLocalFile(videoFilePath));
+    mediaPlayer->play();
+}
+
+QString Widget::getVideoFilePathFromDatabase()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+
+    if (!db.isOpen() && !db.open()) {
+        qDebug() << "无法连接到数据库";
+        return "";
+    }
+
+    // 查询视频路径
+    QSqlQuery query("SELECT video_name FROM video_streams LIMIT 1");
+
+    if (!query.exec()) {
+        qDebug() << "查询失败: " << query.lastError().text();
+        return "";
+    }
+
+    if (query.next()) {
+        return query.value(0).toString(); // 返回视频路径
+    } else {
+        qDebug() << "没有视频数据";
+        return "";
+    }
 }
 

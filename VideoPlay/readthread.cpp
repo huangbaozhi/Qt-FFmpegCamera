@@ -9,6 +9,9 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QTimer>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 extern "C"
 {   // 用C规则编译指定的代码
@@ -73,6 +76,46 @@ const QString& ReadThread::url()
 void ReadThread::savaVideo(const QString& fileName)
 {
     m_videoSave->open(m_videoDecode->getVideoStream(), fileName);
+
+    if (!m_videoDecode->getVideoStream())
+    {
+        qDebug() << "无效的视频流";
+        return;
+    }
+    else
+    {
+        qDebug() << "视频流正常输出！！！";
+    }
+
+    // 获取视频流的相关信息
+    AVCodecParameters* codecParams = m_videoDecode->getVideoStream()->codecpar;
+    const char* codecName = avcodec_get_name(codecParams->codec_id);
+    int width = codecParams->width;
+    int height = codecParams->height;
+    double frameRate = (double)m_videoDecode->getVideoStream()->avg_frame_rate.num / m_videoDecode->getVideoStream()->avg_frame_rate.den;
+
+    // 连接数据库
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isOpen() && !db.open()) {
+        qDebug() << "无法连接到数据库";
+        return;
+    }
+
+    // 插入数据到数据库
+    QSqlQuery query;
+    query.prepare("INSERT INTO video_streams (video_name, codec_name, width, height, frame_rate) VALUES (?, ?, ?, ?, ?)");
+    query.addBindValue(fileName);        // 视频文件路径
+    query.addBindValue(QString(codecName)); // 编码格式
+    query.addBindValue(width);           // 视频宽度
+    query.addBindValue(height);          // 视频高度
+    query.addBindValue(frameRate);       // 帧率
+
+    if (!query.exec()) {
+        qDebug() << "保存视频流到数据库失败: " << query.lastError().text();
+    } else {
+        qDebug() << "视频流信息已成功保存到数据库";
+    }
+
 }
 
 void ReadThread::stop()

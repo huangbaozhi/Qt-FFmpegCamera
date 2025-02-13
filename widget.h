@@ -32,6 +32,10 @@ private slots:
 
     void onFrameReady(AVFrame *frame);
 
+    void on_playButton_clicked();
+
+    QString getVideoFilePathFromDatabase();
+
 private:
     Ui::Widget *ui;
 
